@@ -1,0 +1,9 @@
+__pycache__/
+venv/
+build/
+dist/
+
+*.mp4
+*.npz
+
+images/**

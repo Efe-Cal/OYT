@@ -4,11 +4,13 @@ from face_recognition_methods import *
 import numpy as np
 # find index of an elemnt in np array
 
-requseted_name = "Elon"
+requseted_names = ["Efe","Elon"]
 
 known_faces_encodings, names = load_faces()
 
-req_face_encoding = known_faces_encodings[np.where(names == requseted_name)[0][0]]
+req_face_encodings = [known_faces_encodings[np.where(names == requseted_name)[0][0]] for requseted_name in requseted_names]
+
+print(req_face_encodings[0],known_faces_encodings[np.where(names=="Elon")[0][0]])
 
 video_paths = ["./vid2.mp4"]
 interval = 1000  # 3 seconds in milliseconds
@@ -28,10 +30,11 @@ for video_path in video_paths:
         cam_face_encodings = face_recognition.face_encodings(image, cam_face_locations)
         
         for face_encoding, face_location in zip(cam_face_encodings, cam_face_locations):
-            matches = face_recognition.compare_faces([req_face_encoding], face_encoding)
+            matches = face_recognition.compare_faces(req_face_encodings, face_encoding)
             
             second = i / fps
             if True in matches:
-                print("Bulundu @ {:.1f}".format(second))
+                for name in np.array(requseted_names)[np.where(matches)[0]]:
+                    print("Bulundu {} @ {:.1f}".format(name, second))
 
     cap.release()

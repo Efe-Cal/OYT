@@ -5,5 +5,7 @@ dist/
 
 *.mp4
 *.npz
+*.db
+*.accdb
 
 images/**

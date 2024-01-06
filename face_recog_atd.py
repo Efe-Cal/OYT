@@ -1,3 +1,4 @@
+from text2speech import text2speech
 import datetime
 import cv2
 import face_recognition
@@ -56,8 +57,14 @@ while True:
 video_capture.release()
 cv2.destroyAllWindows()
 
-hostname = socket.gethostname()
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect(('localhost', 5555))
-    s.sendall(bytes("\n".join(map(lambda x:":::".join(x),list(set(faces_found)))), 'utf-8'))
-    s.close()
+faces_found_names = [row[0] for row in faces_found]
+
+missing_names = [name for name in names if name not in faces_found_names]
+print("Yoklamaya katılmayanlar:", missing_names)
+text2speech("Yoklamaya katılmayanlar " + " ".join(missing_names))
+if input()!="":
+    hostname = socket.gethostname()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect(('localhost', 5555))
+        s.sendall(bytes("\n".join(map(lambda x:":::".join(x),list(set(missing_names)))), 'utf-8'))
+        s.close()

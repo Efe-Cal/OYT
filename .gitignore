@@ -8,4 +8,6 @@ dist/
 *.db
 *.accdb
 
+c.py
+
 images/**

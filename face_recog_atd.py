@@ -33,7 +33,7 @@ while True:
 
         if True in matches:
             name = names[matches.index(True)]
-            faces_found.append([name,datetime.datetime.now().strftime("%H:%M")])
+            faces_found.append([name,datetime.datetime.now().strftime("%H.%M")])
             known_faces_encodings = np.delete(known_faces_encodings, matches.index(True), 0)
             names = np.delete(names, matches.index(True), 0)
             print(name, "bulundu")
@@ -66,5 +66,5 @@ if input()!="":
     hostname = socket.gethostname()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect(('localhost', 5555))
-        s.sendall(bytes("\n".join(map(lambda x:":::".join(x),list(set(missing_names)))), 'utf-8'))
+        s.sendall(bytes("\n".join(list(map(lambda x:":".join(x),faces_found))), 'utf-8'))
         s.close()

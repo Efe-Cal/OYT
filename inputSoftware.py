@@ -13,20 +13,11 @@ def adapt_array(arr):
     out.seek(0)
     return sqlite3.Binary(out.read())
 
-def convert_array(text):
-    out = io.BytesIO(text)
-    out.seek(0)
-    return np.load(out)
-
-
 # Converts np.array to TEXT when inserting
 sqlite3.register_adapter(np.ndarray, adapt_array)
 
-# Converts TEXT to np.array when selecting
-sqlite3.register_converter("array", convert_array)
-
 def browse_file():
-    file_path = filedialog.askopenfilename()
+    file_path = filedialog.askopenfilename(filetypes=[("Image File", ".jpg")])
     file_input.delete(0, tk.END)
     file_input.insert(tk.END, file_path)
 
@@ -36,7 +27,7 @@ def submit():
     kan = input3.get()
     vEmail = email_input.get()
     file_path = file_input.get()
-    if adSoyad == "" or sinif == "" or kan == "" or vEmail == "" or file_path == "":
+    if adSoyad == "" or sinif == "" or len(kan)>3 or vEmail == "" or file_path == "":
         messagebox.showerror("Hata", "Lütfen tüm alanları doldurun")
         return
     # change cursor to a watch and disable all controls
@@ -62,6 +53,7 @@ def submit():
     input1.delete(0, tk.END)
     input2.delete(0, tk.END)
     input3.set("Kan grubu seçin")
+    email_input.delete(0, tk.END)
     file_input.delete(0, tk.END)
 
 window = tkinterDnD.Tk() 

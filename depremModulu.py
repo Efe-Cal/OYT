@@ -33,11 +33,28 @@ def depremKontrol():
             return True
         else: return False
 
-def SQL2HTML(path):
-    conn = sqlite3.connect(path)
+def SQL2HTML():
+    conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
-    cursor.execute('select * from my_table')
-    html='<html><body><table>' 
+    cursor.execute('select adSoyad,sinif,kan from ogrenciler')
+    table_style = '''
+    <style>
+    table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        }
+    td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        }
+    tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+    </style>
+    '''
+    html=f'<html><head>{table_style}</head><body><table>' 
     html+='<tr>'
     for field in cursor.description:
         html += '<th>' + field[0] + '</th>'
@@ -47,6 +64,7 @@ def SQL2HTML(path):
         for field in row:
             html += '<td>' + str(field) + '</td>'
         html+='</tr>'
+    
     html+='</table></body></html>'
     conn.close()
     return html
@@ -65,7 +83,7 @@ text = "Bir deperm oldu."
 
 def konrol():
     if(depremKontrol()):
-        html = SQL2HTML("./my_database.db")
+        html = SQL2HTML()
         message.attach(MIMEText(text, "plain"))
         message.attach(MIMEText(html, "html"))
         with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:

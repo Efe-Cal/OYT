@@ -18,11 +18,15 @@ def encode_image(image_path):
 def load_faces(sinif):
     conn = sqlite3.connect("database.db", detect_types=sqlite3.PARSE_DECLTYPES)
     cursor = conn.cursor()
-    cursor.execute("SELECT face_encode FROM ogrenciler WHERE sinif = ?", (sinif, ))
+    cursor.execute("SELECT face_encode, adSoyad FROM ogrenciler WHERE sinif = ?", (sinif, ))
     data = cursor.fetchall()
     conn.commit()
     conn.close()
-    return [i[0] for i in data]
+    # unzip the data and return
+    return [[i for i, j in data],
+            [j for i, j in data]]
+if __name__ =="__main__":
+    print(load_faces("10a"))
 # Load the known face image(s)
 # # Encode the known face image(s)
 # def encode_images(save=True):

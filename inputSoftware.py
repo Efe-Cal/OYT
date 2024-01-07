@@ -1,6 +1,29 @@
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
 import tkinterDnD
+import sqlite3
+import numpy as np
+import io
+from face_recognition_methods import encode_image
+
+def adapt_array(arr):
+    out = io.BytesIO()
+    np.save(out, arr)
+    out.seek(0)
+    return sqlite3.Binary(out.read())
+
+def convert_array(text):
+    out = io.BytesIO(text)
+    out.seek(0)
+    return np.load(out)
+
+
+# Converts np.array to TEXT when inserting
+sqlite3.register_adapter(np.ndarray, adapt_array)
+
+# Converts TEXT to np.array when selecting
+sqlite3.register_converter("array", convert_array)
 
 def browse_file():
     file_path = filedialog.askopenfilename()
@@ -11,14 +34,25 @@ def submit():
     adSoyad = input1.get()
     sinif = input2.get()
     kan = input3.get()
+    vEmail = email_input.get()
     file_path = file_input.get()
+    if adSoyad == "" or sinif == "" or kan == "" or vEmail == "" or file_path == "":
+        messagebox.showerror("Hata", "Lütfen tüm alanları doldurun")
+        return
     # change cursor to a watch and disable all controls
     window.config(cursor="watch")
     submit_button.config(state=tk.DISABLED)
     browse_button.config(state=tk.DISABLED)
-    # --------------------------------------------------
-    #       Database & Face Recognition operations
-    # --------------------------------------------------
+    
+    face_encode = encode_image(file_path)
+    
+    conn = sqlite3.connect("database.db", detect_types=sqlite3.PARSE_DECLTYPES)
+    cursor = conn.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS ogrenciler (adSoyad TEXT, sinif TEXT, kan TEXT, vEmail TEXT, face_encode array)")
+    cursor.execute("INSERT INTO ogrenciler (adSoyad, sinif, kan, vEmail, face_encode) VALUES (?, ?, ?, ?, ?)", (adSoyad, sinif, kan, vEmail,face_encode))
+    conn.commit()
+    conn.close()
+
     # reset the cursor and controls
     window.config(cursor="")
     submit_button.config(state=tk.NORMAL)
@@ -32,7 +66,8 @@ def submit():
 
 window = tkinterDnD.Tk() 
 window.title("Öğrenci Bilgi Sistemi") 
-window.geometry("400x200")  # Set the window size
+window.geometry("400x250")  # Set the window size
+window.resizable(False, False)  # Disable resizing the window
 
 # Create a frame for the form
 form_frame = tk.Frame(window)
@@ -57,8 +92,13 @@ input3.set("Kan grubu seçin")
 dropdown = tk.OptionMenu(form_frame, input3, "A+", "A-", "B+", "B-", "AB+", "AB-", "0+", "0-")
 dropdown.grid(row=2, column=1)
 
+email_label = tk.Label(form_frame, text="Veli E-posta:")
+email_label.grid(row=3, column=0, sticky="w")
+email_input = tk.Entry(form_frame)
+email_input.grid(row=3, column=1)
+
 file_label = tk.Label(form_frame, text="Fotoğraf:")
-file_label.grid(row=3, column=0, sticky="w")
+file_label.grid(row=4, column=0, sticky="w")
 
 
 def drop(event):
@@ -72,7 +112,7 @@ def drag_command(event):
 
 
 file_input = tk.Entry(form_frame)
-file_input.grid(row=3, column=1, pady=10)
+file_input.grid(row=4, column=1, pady=10)
 
 form_frame.register_drop_target("*")
 form_frame.bind("<<Drop:File>>", drop)
@@ -80,10 +120,10 @@ form_frame.register_drag_source("DND_Files")
 form_frame.bind("<<DragInitCmd>>", drag_command)
 
 browse_button = tk.Button(form_frame, text="Göz at", command=browse_file)
-browse_button.grid(row=3, column=2, padx=10)
+browse_button.grid(row=4, column=2, padx=10)
 
 submit_button = tk.Button(form_frame, text="Kaydet", command=submit)
-submit_button.grid(row=4, column=1, pady=10)
+submit_button.grid(row=5, column=1, pady=10)
 
 window.mainloop()
 

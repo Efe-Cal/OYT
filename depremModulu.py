@@ -37,6 +37,11 @@ def SQL2HTML():
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
     cursor.execute('select adSoyad,sinif,kan from ogrenciler')
+    personal_info = cursor.fetchall()
+    personal_info_dic = cursor.description
+    cursor.execute("SELECT enson FROM ogrgoruldu")
+    enson = cursor.fetchall()
+    enson_disc = cursor.description
     table_style = '''
     <style>
     table {
@@ -56,10 +61,12 @@ def SQL2HTML():
     '''
     html=f'<html><head>{table_style}</head><body><table>' 
     html+='<tr>'
-    for field in cursor.description:
+    for field in personal_info_dic+enson_disc:
         html += '<th>' + field[0] + '</th>'
     html+='</tr>'
-    for row in cursor.fetchall():
+    # print(list(zip(personal_info,enson)))
+    l = [i+j for i,j in list(zip(personal_info,enson))]
+    for row in l:
         html+='<tr>'
         for field in row:
             html += '<td>' + str(field) + '</td>'
@@ -73,7 +80,7 @@ port = 465  # For SSL
 password = os.environ.get('EMAIL_PASSWORD')
 context = ssl.create_default_context()
 sender_email = "raspi9600@gmail.com"
-receiver_emails = ["efecaliskan08@gmail.com","raspi9600@gmail.com"]
+receiver_emails = ["efecaliskan08@gmail.com","nkadayifci@cevrekoleji.k12.tr"]
 
 message = MIMEMultipart("alternative")
 message["Subject"] = "DEPREM!!!"
@@ -82,7 +89,7 @@ message["To"] = ", ".join(receiver_emails)
 text = "Bir deperm oldu."
 
 def konrol():
-    if(depremKontrol()):
+    # if(depremKontrol()):
         html = SQL2HTML()
         message.attach(MIMEText(text, "plain"))
         message.attach(MIMEText(html, "html"))

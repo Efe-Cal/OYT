@@ -6,7 +6,6 @@ import cv2
 import face_recognition
 import numpy as np
 from time import time
-import socket
 from face_recognition_methods import *
 from requsetData import getFaceEncodings, getDersProg
 import requests
@@ -25,7 +24,7 @@ def kacıncı_ders():
     SAATLER=SAATLER.strip().split("\n")
     SAATLER=[i.split("-") for i in SAATLER]
     SAATLER=[[datetime.datetime.strptime(i[0],"%H:%M"),datetime.datetime.strptime(i[1],"%H:%M")] for i in SAATLER]
-    now=datetime.datetime.strptime("13:45", "%H:%M").time()#datetime.datetime.now().time()
+    now=datetime.datetime.strptime("12:45", "%H:%M").time()#datetime.datetime.now().time()
     for i in SAATLER:
         if i[0].time()<=now<=i[1].time():
             nth_ders = SAATLER.index(i)

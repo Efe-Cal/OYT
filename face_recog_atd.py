@@ -1,22 +1,52 @@
+import os
+import sys
 from text2speech import text2speech
 import datetime
 import cv2
 import face_recognition
 import numpy as np
-from time import time, sleep
+from time import time
 import socket
 from face_recognition_methods import *
+from requsetData import getFaceEncodings, getDersProg
+import requests
+import json
 
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
+# extract config data from config.json
+config = json.load(open(os.path.join(application_path,"server_cfg.json"), "r"))
 
-# known_faces_encodings, names = encode_images()
-# or
-known_faces_encodings, names = load_faces()
+hostname = "10a"#socket.gethostname()
+def kacıncı_ders():
+    SAATLER = open("saatler.txt", "r").read()
+    SAATLER=SAATLER.strip().split("\n")
+    SAATLER=[i.split("-") for i in SAATLER]
+    SAATLER=[[datetime.datetime.strptime(i[0],"%H:%M"),datetime.datetime.strptime(i[1],"%H:%M")] for i in SAATLER]
+    now=datetime.datetime.strptime("13:45", "%H:%M").time()#datetime.datetime.now().time()
+    for i in SAATLER:
+        if i[0].time()<=now<=i[1].time():
+            nth_ders = SAATLER.index(i)
+            break
+    return nth_ders
+nth_ders=kacıncı_ders() # 6.ders
 
+if os.path.exists(dataPath:= os.path.join(application_path,"data/known_faces_data.npz")):
+    loaded_data = np.load(dataPath)
+    known_faces_encodings = loaded_data["known_faces_encodings"]
+    names = loaded_data['names']
+else:
+    known_faces_encodings, names = getFaceEncodings(getDersProg(hostname,**config)[0][nth_ders],**config)
+    if not os.path.exists(os.path.join(application_path,"data")):
+        os.mkdir(os.path.join(application_path,"data"))
+    np.savez(dataPath, **{"known_faces_encodings":known_faces_encodings, "names":names})
 # Initialize the video capture
 video_capture = cv2.VideoCapture(0)
 
 faces_found=[]
-text_shown=0,""
+text_shown=(0,"")
 while True:
     ret, image = video_capture.read()
     # Convert the frame to RGB format
@@ -37,7 +67,7 @@ while True:
             known_faces_encodings = np.delete(known_faces_encodings, matches.index(True), 0)
             names = np.delete(names, matches.index(True), 0)
             print(name, "bulundu")
-            text_shown=time(),name
+            text_shown=(time(),name)
 
         # Draw rectangle around the detected face
         top, right, bottom, left = face_location
@@ -46,7 +76,7 @@ while True:
 
     if time()-text_shown[0]<2:
         cv2.putText(image, text_shown[1] + " yoklamaya kaydedildi", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-    else:text_shown=0,""
+    else:text_shown=(0,"")
     cv2.imshow('Face Recognition', image)
 
     key = cv2.waitKey(1) & 0xFF
@@ -60,11 +90,15 @@ cv2.destroyAllWindows()
 faces_found_names = [row[0] for row in faces_found]
 
 missing_names = [name for name in names if name not in faces_found_names]
-print("Yoklamaya katılmayanlar:", missing_names)
-text2speech("Yoklamaya katılmayanlar " + " ".join(missing_names))
+print("Yoklamaya katılmayanlar:", ", ".join(missing_names))
+if missing_names!=[]:
+    text2speech("Yoklamaya katılmayanlar " + " ".join(missing_names))
+
+def sendAtd(faces_found,missing_names, host, port, password):
+    login = requests.get(f"http://{host}:{port}/login/{password}")
+    if login.text == "Login successful!":
+        print("Login successful!")
+        r = requests.post(f"http://{host}:{port}/sendAtd",cookies=login.cookies,headers={"Content-Type": "application/json"},data=json.dumps([hostname,faces_found,missing_names,nth_ders]))
+        print(r.text)
 if input()!="":
-    hostname = socket.gethostname()
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect(('localhost', 5555))
-        s.sendall(bytes("\n".join(list(map(lambda x:":".join(x),faces_found))), 'utf-8'))
-        s.close()
+    sendAtd(faces_found,missing_names, **config)

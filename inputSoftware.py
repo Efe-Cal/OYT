@@ -40,7 +40,9 @@ def submit():
     conn = sqlite3.connect("database.db", detect_types=sqlite3.PARSE_DECLTYPES)
     cursor = conn.cursor()
     cursor.execute("CREATE TABLE IF NOT EXISTS ogrenciler (adSoyad TEXT, sinif TEXT, kan TEXT, vEmail TEXT, face_encode array)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS 'ogrgoruldu' ('ogrisim' TEXT NOT NULL,'d1' TEXT DEFAULT NULL,'d2' TEXT DEFAULT NULL,'d3' TEXT DEFAULT NULL,'d4' TEXT DEFAULT NULL,'d5' TEXT DEFAULT NULL,'d6' TEXT DEFAULT NULL,'d7' TEXT DEFAULT NULL,'d8' TEXT DEFAULT NULL,'d9' TEXT DEFAULT NULL,'d10' TEXT DEFAULT NULL,PRIMARY KEY ('ogrisim'))")
     cursor.execute("INSERT INTO ogrenciler (adSoyad, sinif, kan, vEmail, face_encode) VALUES (?, ?, ?, ?, ?)", (adSoyad, sinif, kan, vEmail,face_encode))
+    cursor.execute("INSERT INTO ogrgoruldu (isim) VALUES (?)", (adSoyad,))
     conn.commit()
     conn.close()
 

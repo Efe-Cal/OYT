@@ -55,11 +55,11 @@ def getData():
         raise Exception("E-posta veya şifre boş!")
     return {"email": email, "password": password, "city": city}
 
-if os.path.exists("configServer.json"):
-    config = json.load(open("configServer.json", "r"))
+if os.path.exists(os.path.join(application_path,"configServer.json")):
+    config = json.load(open(os.path.join(application_path,"configServer.json"), "r"))
 else:
     config = getData()
-    json.dump(config, open("configServer.json", "w"))
+    json.dump(config, open(os.path.join(application_path,"configServer.json"), "w"))
 # Dummy user credentials
 PASSWORD = config["password"]
 
@@ -174,4 +174,4 @@ if __name__ == '__main__':
     t.start()
     t2 = threading.Thread(target=mailAt)
     t2.start()
-    app.run(port=7777,debug=True)
+    app.run("0.0.0.0",port=config["port"],debug=True)

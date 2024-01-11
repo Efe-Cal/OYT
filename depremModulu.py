@@ -1,30 +1,90 @@
 import datetime
+from email.mime.text import MIMEText
+import json
 import os
 import sqlite3
+import sys
+from time import sleep
+from tkinter import messagebox
 import requests
 
 import smtplib, ssl
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+import tkinter as tk
 
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
 
-city="İstanbul"
+port = 465  # For SSL
+context = ssl.create_default_context()
+def getData():
+    window = tk.Tk()
+    # create three tk variables for email, password, and city
+    email_var = tk.StringVar()
+    password_var = tk.StringVar()
+    city_var = tk.StringVar()
+    # create three entry widgets for email, password, and city
+    email_input = tk.Entry(window, textvariable=email_var)
+    email_input.grid(row=0, column=1)
+    password_input = tk.Entry(window, textvariable=password_var)
+    password_input.grid(row=1, column=1)
+    city_input = tk.Entry(window, textvariable=city_var)
+    city_input.grid(row=2, column=1)
+    # create three labels for email, password, and city
+    email_label = tk.Label(window, text="E-posta:")
+    email_label.grid(row=0, column=0, sticky="w")
+    password_label = tk.Label(window, text="Şifre:")
+    password_label.grid(row=1, column=0, sticky="w")
+    city_label = tk.Label(window, text="Şehir:")
+    city_label.grid(row=2, column=0, sticky="w")
+    # create a button to save the data
+    button = tk.Button(window, text="Kaydet", command=window.destroy)
+    button.grid(row=3, column=1)
+    window.mainloop()
+    email = email_var.get()
+    password = password_var.get()
+    city = city_var.get()
+    with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
+        server.login(str(email), str(password))
+        server.quit()
+    if city == "" or email == "" or password == "" or city_var.get() == "":
+        messagebox.showerror("Hata", "Lütfen tüm alanları doldurun")
+        raise Exception("E-posta veya şifre boş!")
+    return {"email": email, "password": password, "city": city}
+
+if os.path.exists("configServer.json"):
+    config = json.load(open("configServer.json", "r"))
+else:
+    config = getData()
+    json.dump(config, open("configServer.json", "w"))
+
+password = config["password"]
+sender_email = config["email"]
+
+city = config["city"]
+eskiDeprem=0
 def depremKontrol():
+    global eskiDeprem
     # make a requst and get json data
     response = requests.get("https://api.orhanaydogdu.com.tr/deprem/live.php?limit=1")
     data = response.json()["result"]
     cities = data[0]["location_properties"]["closestCities"]
-    in_city = any([True for city in cities if city["name"] == city])
+    in_city = city in [city["name"] for city in cities ]
     when = datetime.datetime.strptime(data[0]["date"], '%Y.%m.%d %H:%M:%S')
     happening_now = when > datetime.datetime.now() - datetime.timedelta(minutes=3)
     magnitude = data[0]["mag"]
-    
-    if in_city and happening_now and magnitude >= 2.5:
+    # print(datetime.datetime.strptime("2024.01.11 18:31:37", "%Y.%m.%d %H:%M:%S") - datetime.timedelta(minutes=3))
+    if in_city and happening_now:
+        if eskiDeprem==when:
+            return False
+        eskiDeprem=when
         for i in cities:
             if i["name"]==city:
                 distance = i["distance"]/1000
-                
+        print(f"Deprem oldu! {magnitude} büyüklüğünde, {distance} km uzaklıkta.")
         if magnitude >= 3.5 and distance < 15:
             return True
         elif magnitude >= 5 and distance < 50:
@@ -76,11 +136,7 @@ def SQL2HTML():
     conn.close()
     return html
 
-port = 465  # For SSL
-password = os.environ.get('EMAIL_PASSWORD')
-context = ssl.create_default_context()
-sender_email = "raspi9600@gmail.com"
-receiver_emails = ["efecaliskan08@gmail.com","nkadayifci@cevrekoleji.k12.tr"]
+receiver_emails = open(os.path.join(application_path,"receiver_emails.txt"), "r").read().split("\n")
 
 message = MIMEMultipart("alternative")
 message["Subject"] = "DEPREM!!!"
@@ -89,12 +145,16 @@ message["To"] = ", ".join(receiver_emails)
 text = "Bir deperm oldu."
 
 def konrol():
-    # if(depremKontrol()):
+    if(depremKontrol()):
         html = SQL2HTML()
         message.attach(MIMEText(text, "plain"))
         message.attach(MIMEText(html, "html"))
         with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-            server.login("raspi9600@gmail.com", password)
+            server.login(config["email"], password)
             server.sendmail(sender_email, receiver_emails, message.as_string())
-      
-konrol()
+            server.quit()
+        print("mail gönderildi")
+
+while True: 
+    konrol()
+    sleep(60)

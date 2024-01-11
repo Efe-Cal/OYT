@@ -8,6 +8,8 @@ dist/
 *.db
 *.accdb
 *.db-journal
+*.json
+*.txt
 
 c.py
 saatler.txt

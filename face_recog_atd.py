@@ -10,34 +10,71 @@ from face_recognition_methods import *
 from requsetData import getFaceEncodings, getDersProg
 import requests
 import json
+import tkinter as tk
 
 if getattr(sys, 'frozen', False):
     application_path = os.path.dirname(sys.executable)
 elif __file__:
     application_path = os.path.dirname(__file__)
-# extract config data from config.json
-config = json.load(open(os.path.join(application_path,"server_cfg.json"), "r"))
+def getConfig():
+    # tkinter window for config data
+    window = tk.Tk()
+    window.title("Yoklama")
+    window.geometry("270x165")
+    # start at the center of the screen
+    window.eval('tk::PlaceWindow . center')
+    window.resizable(False, False)
+    # tkinter variables
+    host = tk.StringVar()
+    port = tk.StringVar()
+    okul = tk.StringVar()
+    sinif = tk.StringVar()
+    saat = tk.StringVar()
+    password = tk.StringVar()
+    # tkinter widgets
+    tk.Label(window, text="Sınıf:").grid(row=0, column=0, sticky="W")
+    tk.Entry(window, textvariable=sinif).grid(row=0, column=1)
+    tk.Label(window, text="Yoklama gönderim saati:").grid(row=1, column=0, sticky="W")
+    tk.Entry(window, textvariable=saat).grid(row=1, column=1)
+    tk.Label(window, text="Host:").grid(row=2, column=0, sticky="W")
+    tk.Entry(window, textvariable=host).grid(row=2, column=1)
+    tk.Label(window, text="Port:").grid(row=3, column=0, sticky="W")    
+    tk.Entry(window, textvariable=port).grid(row=3, column=1)
+    tk.Label(window, text="Okul:").grid(row=4, column=0, sticky="W")    
+    tk.Entry(window, textvariable=okul).grid(row=4, column=1)
+    tk.Label(window, text="Sunucu Şifresi:").grid(row=5, column=0, sticky="W")
+    tk.Entry(window, textvariable=password).grid(row=5, column=1)
+    tk.Button(window, text="Kaydet", command=window.destroy).grid(row=6, column=1)
+    window.mainloop()
+    return {"sinif":sinif.get().lower(),"host":host.get(), "port":port.get(), "password":password.get(), "okul":okul.get().lower(),"saat":saat.get()}
 
-hostname = "10a"#socket.gethostname()
+# extract config data from config.json
+if os.path.exists(os.path.join(application_path,"configAtd.json")):
+    config = json.load(open(os.path.join(application_path,"configAtD.json"), "r"))
+else:
+    config = getConfig()
+    json.dump(config, open(os.path.join(application_path,"configAtd.json"), "w"))
+
+sinifAdı = config["sinif"]
 def kacıncı_ders():
-    SAATLER = open("saatler.txt", "r").read()
-    SAATLER=SAATLER.strip().split("\n")
+    SAATLER = requests.get(f"http://{config['host']}:{config['port']}/saatler/{config['okul']}")[0]
     SAATLER=[i.split("-") for i in SAATLER]
     SAATLER=[[datetime.datetime.strptime(i[0],"%H:%M"),datetime.datetime.strptime(i[1],"%H:%M")] for i in SAATLER]
     now=datetime.datetime.strptime("12:45", "%H:%M").time()#datetime.datetime.now().time()
     for i in SAATLER:
         if i[0].time()<=now<=i[1].time():
             nth_ders = SAATLER.index(i)
+            dersBitimi = i[0]
             break
-    return nth_ders
-nth_ders=kacıncı_ders() # 6.ders
+    return nth_ders,dersBitimi
+nth_ders,dersBası=kacıncı_ders()
 
 if os.path.exists(dataPath:= os.path.join(application_path,"data/known_faces_data.npz")):
     loaded_data = np.load(dataPath)
     known_faces_encodings = loaded_data["known_faces_encodings"]
     names = loaded_data['names']
 else:
-    known_faces_encodings, names = getFaceEncodings(getDersProg(hostname,**config)[0][nth_ders],**config)
+    known_faces_encodings, names = getFaceEncodings(getDersProg(sinifAdı,config["host"], config["port"], config["password"])[0][nth_ders],config["host"], config["port"], config["password"])
     if not os.path.exists(os.path.join(application_path,"data")):
         os.mkdir(os.path.join(application_path,"data"))
     np.savez(dataPath, **{"known_faces_encodings":known_faces_encodings, "names":names})
@@ -78,8 +115,7 @@ while True:
     else:text_shown=(0,"")
     cv2.imshow('Face Recognition', image)
 
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord('q') or key==27:
+    if datetime.datetime.now().time()>datetime.timedelta(minutes=config["saat"])+dersBası.time():
         break
 
 # Release the video capture
@@ -97,7 +133,7 @@ def sendAtd(faces_found,missing_names, host, port, password):
     login = requests.get(f"http://{host}:{port}/login/{password}")
     if login.text == "Login successful!":
         print("Login successful!")
-        r = requests.post(f"http://{host}:{port}/sendAtd",cookies=login.cookies,headers={"Content-Type": "application/json"},data=json.dumps([hostname,faces_found,missing_names,nth_ders]))
+        r = requests.post(f"http://{host}:{port}/sendAtd",cookies=login.cookies,headers={"Content-Type": "application/json"},data=json.dumps([sinifAdı,faces_found,missing_names,nth_ders]))
         print(r.text)
 if input()!="":
-    sendAtd(faces_found,missing_names, **config)
+    sendAtd(faces_found,missing_names, config["host"], config["port"], config["password"])

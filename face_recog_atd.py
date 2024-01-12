@@ -60,7 +60,7 @@ def kacıncı_ders():
     SAATLER = requests.get(f"http://{config['host']}:{config['port']}/saatler/{config['okul']}")[0]
     SAATLER=[i.split("-") for i in SAATLER]
     SAATLER=[[datetime.datetime.strptime(i[0],"%H:%M"),datetime.datetime.strptime(i[1],"%H:%M")] for i in SAATLER]
-    now=datetime.datetime.strptime("12:45", "%H:%M").time()#datetime.datetime.now().time()
+    now=datetime.datetime.now().time()
     for i in SAATLER:
         if i[0].time()<=now<=i[1].time():
             nth_ders = SAATLER.index(i)
@@ -117,6 +117,8 @@ while True:
 
     if datetime.datetime.now().time()>datetime.timedelta(minutes=config["saat"])+dersBası.time():
         break
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
 # Release the video capture
 video_capture.release()
@@ -135,5 +137,7 @@ def sendAtd(faces_found,missing_names, host, port, password):
         print("Login successful!")
         r = requests.post(f"http://{host}:{port}/sendAtd",cookies=login.cookies,headers={"Content-Type": "application/json"},data=json.dumps([sinifAdı,faces_found,missing_names,nth_ders]))
         print(r.text)
-if input()!="":
+if input("Yoklamayı göndermek ister misiniz? (e/h)")=="e":
     sendAtd(faces_found,missing_names, config["host"], config["port"], config["password"])
+elif input("Tekrar yoklama almak ister misiniz? (e/h)")=="e":
+    os.system("python " + os.path.join(application_path,"face_recog_atd.py"))

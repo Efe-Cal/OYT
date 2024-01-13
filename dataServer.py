@@ -12,7 +12,7 @@ from flask import Flask, g, jsonify, request, session
 from face_recognition_methods import load_faces
 import json
 import threading
-import tkinter as tk
+from serverSideInput import getData
 
 if getattr(sys, 'frozen', False):
     application_path = os.path.dirname(sys.executable)
@@ -21,39 +21,8 @@ elif __file__:
 app = Flask(__name__)
 app.secret_key = os.urandom(24).hex()
 
-def getData():
-    window = tk.Tk()
-    # create three tk variables for email, password, and city
-    email_var = tk.StringVar()
-    password_var = tk.StringVar()
-    city_var = tk.StringVar()
-    # create three entry widgets for email, password, and city
-    email_input = tk.Entry(window, textvariable=email_var)
-    email_input.grid(row=0, column=1)
-    password_input = tk.Entry(window, textvariable=password_var)
-    password_input.grid(row=1, column=1)
-    city_input = tk.Entry(window, textvariable=city_var)
-    city_input.grid(row=2, column=1)
-    # create three labels for email, password, and city
-    email_label = tk.Label(window, text="E-posta:")
-    email_label.grid(row=0, column=0, sticky="w")
-    password_label = tk.Label(window, text="Şifre:")
-    password_label.grid(row=1, column=0, sticky="w")
-    city_label = tk.Label(window, text="Şehir:")
-    city_label.grid(row=2, column=0, sticky="w")
-    # create a button to save the data
-    button = tk.Button(window, text="Kaydet", command=window.destroy)
-    button.grid(row=3, column=1)
-    window.mainloop()
-    email = email_var.get()
-    password = password_var.get()
-    city = city_var.get()
-    with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-        server.login(str(email), str(password))
-        server.quit()
-    if city == "" or email == "" or password == "" or city_var.get() == "":
-        raise Exception("E-posta veya şifre boş!")
-    return {"email": email, "password": password, "city": city}
+port = 465  # For SSL
+context = ssl.create_default_context()
 
 if os.path.exists(os.path.join(application_path,"configServer.json")):
     config = json.load(open(os.path.join(application_path,"configServer.json"), "r"))
@@ -91,7 +60,6 @@ def login_required(view):
         return view(**kwargs)
 
     return wrapped_view
-
 @app.before_request
 def before_request():
     load_logged_in_user()
@@ -132,12 +100,9 @@ def saatler(okul):
     data = cursor.fetchall()
     return jsonify(data)
 
-
 olmayanlar = []
 
-port = 465  # For SSL
-password = config["password"]
-context = ssl.create_default_context()
+email_password = config["email_password"]
 sender_email = config["email"]
 receiver_emails = open(os.path.join(application_path,"receiver_emails.txt"), "r").read().split("\n")
 
@@ -155,7 +120,7 @@ def mailAt():
         text += "\n" + i
     message.attach(MIMEText(text, "plain"))
     with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-        server.login(config["email"], config["email_password"])
+        server.login(sender_email, email_password)
         server.sendmail(sender_email, receiver_emails, message.as_string())
 
 def yoklama_al():
@@ -182,4 +147,4 @@ if __name__ == '__main__':
     t.start()
     t2 = threading.Thread(target=mailAt)
     t2.start()
-    app.run("0.0.0.0",port=config["port"],debug=True)
+    app.run("0.0.0.0",port=7777,debug=True)

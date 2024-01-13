@@ -6,6 +6,12 @@ import sqlite3
 import numpy as np
 import io
 from face_recognition_methods import encode_image
+import os, sys
+
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
 
 def adapt_array(arr):
     out = io.BytesIO()
@@ -37,7 +43,7 @@ def submit():
     
     face_encode = encode_image(file_path)
     
-    conn = sqlite3.connect("database.db", detect_types=sqlite3.PARSE_DECLTYPES)
+    conn = sqlite3.connect(os.path.join(application_path,"database.db"), detect_types=sqlite3.PARSE_DECLTYPES)
     cursor = conn.cursor()
     cursor.execute("CREATE TABLE IF NOT EXISTS ogrenciler (adSoyad TEXT, sinif TEXT, kan TEXT, vEmail TEXT, face_encode array)")
     cursor.execute("CREATE TABLE IF NOT EXISTS 'ogrgoruldu' ('ogrisim' TEXT NOT NULL,'d1' TEXT DEFAULT NULL,'d2' TEXT DEFAULT NULL,'d3' TEXT DEFAULT NULL,'d4' TEXT DEFAULT NULL,'d5' TEXT DEFAULT NULL,'d6' TEXT DEFAULT NULL,'d7' TEXT DEFAULT NULL,'d8' TEXT DEFAULT NULL,'d9' TEXT DEFAULT NULL,'d10' TEXT DEFAULT NULL,PRIMARY KEY ('ogrisim'))")
@@ -91,7 +97,7 @@ email_label.grid(row=3, column=0, sticky="w")
 email_input = tk.Entry(form_frame)
 email_input.grid(row=3, column=1)
 
-file_label = tk.Label(form_frame, text="Fotoğraf:")
+file_label = tk.Label(form_frame, text="Öğrencinin Fotoğrafı:")
 file_label.grid(row=4, column=0, sticky="w")
 
 

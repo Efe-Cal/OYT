@@ -74,7 +74,7 @@ def protected(sinif):
 @app.route('/dersprog/<sinif>')
 @login_required  # Protect the route
 def dersprog(sinif):
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(os.path.join(application_path,"database.db"))
     cursor = conn.cursor()
     cursor.execute(f"SELECT * FROM dersprog WHERE sinif='{sinif}'")
     data = cursor.fetchall()

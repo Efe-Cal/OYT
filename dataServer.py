@@ -1,4 +1,5 @@
 import datetime
+import functools
 import os
 import queue
 import smtplib, ssl
@@ -7,8 +8,7 @@ from email.mime.multipart import MIMEMultipart
 import sqlite3
 import sys
 from time import sleep
-from flask import Flask, jsonify, request
-from flask_login import LoginManager, UserMixin, login_required, login_user,logout_user
+from flask import Flask, g, jsonify, request, session
 from face_recognition_methods import load_faces
 import json
 import threading
@@ -63,30 +63,38 @@ else:
 # Dummy user credentials
 PASSWORD = config["password"]
 
-# User class for Flask-Login
-class User(UserMixin):
-    pass
-
-# Configure Flask-Login
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-@login_manager.user_loader
-def load_user(user_id):
-    # In this example, we only have one user
-        user = User()
-        user.id = user_id
-        return user
-
 @app.route('/login/<password>', methods=['GET'])
 def login(password):
-    if str(password) == PASSWORD:
-        user = User()
-        user.id = 1
-        login_user(user)  # Login the user
-        return 'Login successful!'
+    error = None
+
+    if not config['password']==password:
+        error = 'Incorrect password.'
+        return error
+    if error is None:
+        session.clear()
+        session['user_id'] = request.remote_addr
+
+    return 'Login successful!'
+
+def load_logged_in_user():
+    user_id = session.get('user_id')
+    if user_id is None:
+        g.user = None
     else:
-        return 'Invalid password'
+        g.user = request.remote_addr
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return "Login required!"
+
+        return view(**kwargs)
+
+    return wrapped_view
+
+@app.before_request
+def before_request():
+    load_logged_in_user()
 
 @app.route('/getFaceEncodings/<sinif>')
 @login_required  # Protect the route
@@ -105,10 +113,10 @@ def dersprog(sinif):
     return jsonify(data)
 
 @app.route('/logout')
-@login_required  # Protect the route
 def logout():
-    logout_user()
-    return 'Logged out successfully!'
+    session.clear()
+    return "Logged out!"
+
 q = queue.Queue()
 @app.route('/sendAtd',methods=['POST'])
 def sendAtd():
@@ -147,7 +155,7 @@ def mailAt():
         text += "\n" + i
     message.attach(MIMEText(text, "plain"))
     with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-        server.login(config["email"], password)
+        server.login(config["email"], config["email_password"])
         server.sendmail(sender_email, receiver_emails, message.as_string())
 
 def yoklama_al():

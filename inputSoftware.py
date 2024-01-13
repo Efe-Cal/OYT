@@ -33,6 +33,7 @@ def submit():
     kan = input3.get()
     vEmail = email_input.get()
     file_path = file_input.get()
+    saglıkDurumu = input4.get()
     if adSoyad == "" or sinif == "" or len(kan)>3 or vEmail == "" or file_path == "":
         messagebox.showerror("Hata", "Lütfen tüm alanları doldurun")
         return
@@ -45,7 +46,7 @@ def submit():
     
     conn = sqlite3.connect(os.path.join(application_path,"database.db"), detect_types=sqlite3.PARSE_DECLTYPES)
     cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS ogrenciler (adSoyad TEXT, sinif TEXT, kan TEXT, vEmail TEXT, face_encode array)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS ogrenciler (adSoyad TEXT, sinif TEXT, kan TEXT, vEmail TEXT, face_encode array, ozelSaglıkDurumu TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS 'ogrgoruldu' ('ogrisim' TEXT NOT NULL,'d1' TEXT DEFAULT NULL,'d2' TEXT DEFAULT NULL,'d3' TEXT DEFAULT NULL,'d4' TEXT DEFAULT NULL,'d5' TEXT DEFAULT NULL,'d6' TEXT DEFAULT NULL,'d7' TEXT DEFAULT NULL,'d8' TEXT DEFAULT NULL,'d9' TEXT DEFAULT NULL,'d10' TEXT DEFAULT NULL,PRIMARY KEY ('ogrisim'))")
     cursor.execute("INSERT INTO ogrenciler (adSoyad, sinif, kan, vEmail, face_encode) VALUES (?, ?, ?, ?, ?)", (adSoyad, sinif, kan, vEmail,face_encode))
     cursor.execute("INSERT INTO ogrgoruldu (ogrisim) VALUES (?)", (adSoyad,))
@@ -66,7 +67,7 @@ def submit():
 
 window = tkinterDnD.Tk() 
 window.title("Öğrenci Bilgi Sistemi") 
-window.geometry("400x250")  # Set the window size
+window.geometry("400x300")  # Set the window size
 window.resizable(False, False)  # Disable resizing the window
 
 # Create a frame for the form
@@ -97,8 +98,17 @@ email_label.grid(row=3, column=0, sticky="w")
 email_input = tk.Entry(form_frame)
 email_input.grid(row=3, column=1)
 
+input4 = tk.StringVar()
+input4.set("Özel Sağlık Durumu")
+label4 = tk.Label(form_frame, text="Özel Sağlık Durumu:")
+label4.grid(row=4, column=0, sticky="w")
+text_box = tk.Text(form_frame, height=5, width=20)
+text_box.grid(row=4, column=1)
+
+
+
 file_label = tk.Label(form_frame, text="Öğrencinin Fotoğrafı:")
-file_label.grid(row=4, column=0, sticky="w")
+file_label.grid(row=5, column=0, sticky="w")
 
 
 def drop(event):
@@ -112,7 +122,7 @@ def drag_command(event):
 
 
 file_input = tk.Entry(form_frame)
-file_input.grid(row=4, column=1, pady=10)
+file_input.grid(row=5, column=1, pady=10)
 
 form_frame.register_drop_target("*")
 form_frame.bind("<<Drop:File>>", drop)
@@ -120,10 +130,10 @@ form_frame.register_drag_source("DND_Files")
 form_frame.bind("<<DragInitCmd>>", drag_command)
 
 browse_button = tk.Button(form_frame, text="Göz at", command=browse_file)
-browse_button.grid(row=4, column=2, padx=10)
+browse_button.grid(row=5, column=2, padx=10)
 
 submit_button = tk.Button(form_frame, text="Kaydet", command=submit)
-submit_button.grid(row=5, column=1, pady=10)
+submit_button.grid(row=6, column=1, pady=10)
 
 window.mainloop()
 

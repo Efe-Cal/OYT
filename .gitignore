@@ -4,6 +4,7 @@ build/
 dist/
 data/
 images/
+mutagen/
 
 *.mp4
 *.npz

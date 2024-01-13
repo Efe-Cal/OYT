@@ -84,6 +84,14 @@ def dersprog(sinif):
 def logout():
     session.clear()
     return "Logged out!"
+@app.route('/kacak/<isim>/<saat>')
+def kacak(isim,saat):
+    conn = sqlite3.connect(os.path.join(application_path,"database.db"))
+    cursor = conn.cursor()
+    cursor.execute(f"UPDATE ogrgoruldu SET enson='{request.remote_addr};{saat}' WHERE ogrisim='{isim}'")
+    conn.commit()
+    conn.close()
+    return 200
 
 q = queue.Queue()
 @app.route('/sendAtd',methods=['POST'])
@@ -138,7 +146,7 @@ def yoklama_al():
         # insert missing_names to database
         for name in faces_found:
             cursor.execute(f"UPDATE ogrgoruldu SET d{nth_ders+1}='{data[0]}' WHERE ogrisim='{name[0]}'")
-            cursor.execute(f"UPDATE ogrgoruldu SET enson='{data[0]},{name[1]}' WHERE ogrisim='{name[0]}'")
+            cursor.execute(f"UPDATE ogrgoruldu SET enson='{data[0]};{name[1]}' WHERE ogrisim='{name[0]}'")
         conn.commit()
         conn.close()
 

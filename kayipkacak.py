@@ -6,19 +6,15 @@ import os
 import sys
 import cv2
 import face_recognition
-import numpy as np
-from time import time
 import requests
 import datetime
-from email.mime.text import MIMEText
 import json
-from time import sleep
 import smtplib, ssl
+from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from serverSideInput import getData
 from email.mime.image import MIMEImage
-
-
+from time import sleep
+from serverSideInput import getData
 
 if getattr(sys, 'frozen', False):
     application_path = os.path.dirname(sys.executable)
@@ -27,7 +23,7 @@ elif __file__:
 if os.path.exists(os.path.join(application_path,"configAtd.json")):
     config = json.load(open(os.path.join(application_path,"configAtD.json"), "r"))
 else:
-    config = getConfig()
+    config = getData()
     json.dump(config, open(os.path.join(application_path,"configAtd.json"), "w"))
               
 

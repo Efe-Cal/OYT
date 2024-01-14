@@ -58,9 +58,9 @@ def depremKontrol():
         else: return False
 
 def SQL2HTML():
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(os.path.join(application_path,"database.db"))
     cursor = conn.cursor()
-    cursor.execute('select adSoyad,sinif,kan from ogrenciler')
+    cursor.execute('select adSoyad,sinif,kan,ozelSaglıkDurumu from ogrenciler')
     personal_info = cursor.fetchall()
     personal_info_dic = cursor.description
     cursor.execute("SELECT enson FROM ogrgoruldu")

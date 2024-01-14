@@ -57,10 +57,10 @@ else:
 
 sinifAdı = config["sinif"]
 def kacıncı_ders():
-    SAATLER = requests.get(f"http://{config['host']}:{config['port']}/saatler/{config['okul']}")[0]
+    SAATLER = requests.get(f"http://{config['host']}:{config['port']}/saatler/{config['okul']}").json()
     SAATLER=[i.split("-") for i in SAATLER]
     SAATLER=[[datetime.datetime.strptime(i[0],"%H:%M"),datetime.datetime.strptime(i[1],"%H:%M")] for i in SAATLER]
-    now=datetime.datetime.now().time()
+    now= datetime.datetime.strptime("13:40","%H:%M").time()
     for i in SAATLER:
         if i[0].time()<=now<=i[1].time():
             nth_ders = SAATLER.index(i)
@@ -115,7 +115,7 @@ while True:
     else:text_shown=(0,"")
     cv2.imshow('Face Recognition', image)
 
-    if datetime.datetime.now().time()>datetime.timedelta(minutes=config["saat"])+dersBası.time():
+    if datetime.datetime.now()>datetime.timedelta(minutes=int(config["saat"]))+dersBası:
         break
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
@@ -128,8 +128,8 @@ faces_found_names = [row[0] for row in faces_found]
 
 missing_names = [name for name in names if name not in faces_found_names]
 print("Yoklamaya katılmayanlar:", ", ".join(missing_names))
-if missing_names!=[]:
-    text2speech("Yoklamaya katılmayanlar " + " ".join(missing_names))
+# if missing_names!=[]:
+#     text2speech("Yoklamaya katılmayanlar " + " ".join(missing_names))
 
 def sendAtd(faces_found,missing_names, host, port, password):
     login = requests.get(f"http://{host}:{port}/login/{password}")

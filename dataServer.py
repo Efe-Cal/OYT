@@ -91,7 +91,7 @@ def kacak(isim,saat):
     cursor.execute(f"UPDATE ogrgoruldu SET enson='{request.remote_addr};{saat}' WHERE ogrisim='{isim}'")
     conn.commit()
     conn.close()
-    return 200
+    return "OK"
 
 q = queue.Queue()
 @app.route('/sendAtd',methods=['POST'])
@@ -104,8 +104,8 @@ def sendAtd():
 def saatler(okul):
     conn = sqlite3.connect(os.path.join(application_path,"database.db"))
     cursor = conn.cursor()
-    cursor.execute(f"SELECT * FROM saatler WHERE okul='{okul}'")
-    data = cursor.fetchall()
+    cursor.execute(f"SELECT * FROM dersSaatleri WHERE okul='{okul}'")
+    data = cursor.fetchall()[0][1:]
     return jsonify(data)
 
 olmayanlar = []

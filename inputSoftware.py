@@ -46,9 +46,9 @@ def submit():
     
     conn = sqlite3.connect(os.path.join(application_path,"database.db"), detect_types=sqlite3.PARSE_DECLTYPES)
     cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS ogrenciler (adSoyad TEXT, sinif TEXT, kan TEXT, vEmail TEXT, face_encode array, ozelSaglıkDurumu TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS ogrenciler (adSoyad TEXT, sinif TEXT, kan TEXT, vEmail TEXT, face_encode array, ozelSaglıkDurumu TEXT DEFAULT NULL)")
     cursor.execute("CREATE TABLE IF NOT EXISTS 'ogrgoruldu' ('ogrisim' TEXT NOT NULL,'d1' TEXT DEFAULT NULL,'d2' TEXT DEFAULT NULL,'d3' TEXT DEFAULT NULL,'d4' TEXT DEFAULT NULL,'d5' TEXT DEFAULT NULL,'d6' TEXT DEFAULT NULL,'d7' TEXT DEFAULT NULL,'d8' TEXT DEFAULT NULL,'d9' TEXT DEFAULT NULL,'d10' TEXT DEFAULT NULL,PRIMARY KEY ('ogrisim'))")
-    cursor.execute("INSERT INTO ogrenciler (adSoyad, sinif, kan, vEmail, face_encode) VALUES (?, ?, ?, ?, ?)", (adSoyad, sinif, kan, vEmail,face_encode))
+    cursor.execute("INSERT INTO ogrenciler (adSoyad, sinif, kan, vEmail, face_encode) VALUES (?, ?, ?, ?, ?, ?)", (adSoyad, sinif, kan, vEmail,face_encode, saglıkDurumu))
     cursor.execute("INSERT INTO ogrgoruldu (ogrisim) VALUES (?)", (adSoyad,))
     conn.commit()
     conn.close()
@@ -77,12 +77,12 @@ form_frame.pack(padx=20, pady=20)
 # Create labels and entries for the form
 label1 = tk.Label(form_frame, text="Ad ve Soyad:")
 label1.grid(row=0, column=0, sticky="w")
-input1 = tk.Entry(form_frame)
+input1 = tk.Entry(form_frame,width=30)
 input1.grid(row=0, column=1)
 
 label2 = tk.Label(form_frame, text="Sınıf:")
 label2.grid(row=1, column=0, sticky="w")
-input2 = tk.Entry(form_frame)
+input2 = tk.Entry(form_frame,width=30)
 input2.grid(row=1, column=1)
 
 label3 = tk.Label(form_frame, text="Kan grubu:")
@@ -95,21 +95,18 @@ dropdown.grid(row=2, column=1)
 
 email_label = tk.Label(form_frame, text="Veli E-posta:")
 email_label.grid(row=3, column=0, sticky="w")
-email_input = tk.Entry(form_frame)
+email_input = tk.Entry(form_frame,width=30)
 email_input.grid(row=3, column=1)
 
 input4 = tk.StringVar()
 input4.set("Özel Sağlık Durumu")
 label4 = tk.Label(form_frame, text="Özel Sağlık Durumu:")
 label4.grid(row=4, column=0, sticky="w")
-text_box = tk.Text(form_frame, height=5, width=20)
+text_box = tk.Text(form_frame, height=5, width=22)
 text_box.grid(row=4, column=1)
-
-
 
 file_label = tk.Label(form_frame, text="Öğrencinin Fotoğrafı:")
 file_label.grid(row=5, column=0, sticky="w")
-
 
 def drop(event):
     # This function is called, when stuff is dropped into a widget
@@ -121,7 +118,7 @@ def drag_command(event):
     return (tkinterDnD.COPY, "DND_Text", "Some nice dropped text!")
 
 
-file_input = tk.Entry(form_frame)
+file_input = tk.Entry(form_frame,width=30)
 file_input.grid(row=5, column=1, pady=10)
 
 form_frame.register_drop_target("*")

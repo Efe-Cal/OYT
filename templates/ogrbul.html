@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Table</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <table>
+        <thead>
+            <tr>
+                <th>isim</th>
+                <th>sinif</th>
+                <th>kangrup</th>
+                <th>ailemail</th>
+                <th>saglik durumu</th>
+                <!-- Add more th elements for additional columns -->
+                <th>Enson</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set x = 0 %}
+                {% for row in datas %}
+                    <tr>
+                        <td>{{row[0]}}</td>
+                        <td>{{row[1]}}</td>
+                        <td>{{row[2]}}</td>
+                        <td>{{row[3]}}</td>
+                        <td>{{row[4]}}</td>
+                        <td>{{datass[x][0]}}</td>
+                    </tr>
+                    {% set x = x + 1 %}
+                {% endfor %}
+            <!-- Add more rows as needed -->
+        </tbody>
+    </table>
+
+</body>
+</html>

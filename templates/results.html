@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SQLite Tables</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <!-- Replace with your column names from the first table -->
+                <th>isim</th>
+                <th>kangrup</th>
+                <th>ailemail</th>
+                <th>sinif</th>
+                <th>saglik durumu</th>
+                <!-- Add more th elements for additional columns -->
+                <th>Enson</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data_table %}
+            <tr>
+                {% for value in row %}
+                <td>{{ value }}</td>
+                {% endfor %}
+                <td>
+                    {% if loop.index0 < data_ogrgoruldu|length %}
+                        {{ data_ogrgoruldu[loop.index0][0] }}
+                    {% else %}
+                        No Data
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

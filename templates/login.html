@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GIRIS</title>
+   <link rel="stylesheet" href="{{ url_for('static', filename='divs.css') }}">
+   
+</head>
+<body>
+  <div>
+    <p class="kullanad">
+      Kullanıcı adını ve şifreyi gir
+    </p>
+
+    <div class="dive">
+      <form action="/login" method="post">
+        <input type="text" placeholder="Kullanıcı Adı" name="username">
+        <input type="password" placeholder="Şifre" name="password">
+        <div class="button-container" id = "butto">
+          <button class = "buton-giris" type="submit">
+            GIRIS YAP
+          </button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

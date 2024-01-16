@@ -64,9 +64,9 @@ def kacıncı_ders():
     for i in SAATLER:
         if i[0].time()<=now<=i[1].time():
             nth_ders = SAATLER.index(i)
-            dersBitimi = i[0]
+            dersBası = i[0]
             break
-    return nth_ders,dersBitimi
+    return nth_ders,dersBası
 nth_ders,dersBası=kacıncı_ders()
 
 if os.path.exists(dataPath:= os.path.join(application_path,"data/known_faces_data.npz")):
@@ -128,8 +128,8 @@ faces_found_names = [row[0] for row in faces_found]
 
 missing_names = [name for name in names if name not in faces_found_names]
 print("Yoklamaya katılmayanlar:", ", ".join(missing_names))
-if missing_names!=[]:
-    text2speech("Yoklamaya katılmayanlar " + " ".join(missing_names))
+# if missing_names!=[]:
+#     text2speech("Yoklamaya katılmayanlar " + " ".join(missing_names))
 
 def sendAtd(faces_found,missing_names, host, port, password):
     login = requests.get(f"http://{host}:{port}/login/{password}")

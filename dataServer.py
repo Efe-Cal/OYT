@@ -7,7 +7,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import sqlite3
 import sys
-from time import sleep
 from flask import Flask, g, jsonify, request, session
 from face_recognition_methods import load_faces
 import json
@@ -100,12 +99,15 @@ def sendAtd():
     q.put(data)
     return "OK"
 
-@app.route("/saatler/<okul>")
-def saatler(okul):
+def _saatleriAl(okul):
     conn = sqlite3.connect(os.path.join(application_path,"database.db"))
     cursor = conn.cursor()
     cursor.execute(f"SELECT * FROM dersSaatleri WHERE okul='{okul}'")
     data = cursor.fetchall()[0][1:]
+    return data
+@app.route("/saatler/<okul>")
+def saatler(okul):
+    data = _saatleriAl(okul)
     return jsonify(data)
 
 olmayanlar = []
@@ -118,11 +120,9 @@ message = MIMEMultipart("alternative")
 message["Subject"] = "YOKLAMA!!!"
 message["From"] = sender_email
 message["To"] = ", ".join(receiver_emails)
-def mailAt():
-    global olmayanlar
-    text = "Yoklama alındı."
-    while datetime.datetime.now().time()<datetime.datetime.strptime("08:30", "%H:%M").time():
-        sleep(60)
+
+def mailAt(olmayanlar,sinif):
+    text = f"{sinif} sınıfı yoklaması. Yoklama saati:{datetime.datetime.now().strftime('%H.%M')}\nOlmayanlar:"
     for i in olmayanlar:
         print(i)
         text += "\n" + i
@@ -132,7 +132,6 @@ def mailAt():
         server.sendmail(sender_email, receiver_emails, message.as_string())
 
 def yoklama_al():
-    global olmayanlar
     conn = sqlite3.connect(os.path.join(application_path,"database.db"))
     cursor = conn.cursor()
     while True:
@@ -142,7 +141,7 @@ def yoklama_al():
         faces_found = data[1]
         missing_names = data[2]
         nth_ders = data[3]
-        olmayanlar+=missing_names
+        mailAt(missing_names,data[0])
         # insert missing_names to database
         for name in faces_found:
             cursor.execute(f"UPDATE ogrgoruldu SET d{nth_ders+1}='{data[0]}' WHERE ogrisim='{name[0]}'")
@@ -153,6 +152,4 @@ def yoklama_al():
 if __name__ == '__main__':
     t = threading.Thread(target=yoklama_al)
     t.start()
-    t2 = threading.Thread(target=mailAt)
-    t2.start()
     app.run("0.0.0.0",port=7777,debug=True)
